@@ -3,12 +3,13 @@ import {Vote} from "@domain/votation/use-cases/Vote";
 import {Vote as VoteEntity} from '@domain/votation/entities/Vote';
 import {UserRepository} from "@domain/auth/repositories/UserRepository";
 import {RoomRepository} from "@domain/votation/repositories/RoomRepository";
+import {Room} from "@domain/votation/entities/Room";
 
 export class VoteImpl implements Vote {
 
     constructor(private roomRepository: RoomRepository, private userRepository: UserRepository){}
 
-    execute(roomUUID: UUID, userUUID: UUID, value: string): boolean {
+    execute(roomUUID: UUID, userUUID: UUID, value: string): Room {
         const room = this.roomRepository.getRoomByUUID(roomUUID);
         const user = this.userRepository.getUserByUUID(userUUID);
         if(room && user) {
@@ -18,7 +19,6 @@ export class VoteImpl implements Vote {
             } else {
                 room.votes.push(new VoteEntity({value, user}))
             }
-            return true;
         } else {
             if(!room){
                 throw Error(`The room "${roomUUID}" doesn't exists`);
@@ -27,6 +27,6 @@ export class VoteImpl implements Vote {
                 throw Error(`The user "${userUUID}" doesn't exists`);
             }
         }
-        return false;
+        return room;
     }
 }

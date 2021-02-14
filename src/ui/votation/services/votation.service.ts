@@ -1,35 +1,46 @@
 import {Injectable} from '@nestjs/common';
-import {EventBusService} from "@ui/shared/services/event-bus.service";
 import {JoinRoomImpl} from "@application/votation/use-cases/JoinRoom";
 import {UserRepositoryImpl} from "@infrastructure/memory/auth/UserRepository";
 import {RoomRepositoryImpl} from "@infrastructure/memory/votation/RoomRepository";
 import {JoinRoom} from "@domain/votation/use-cases/JoinRoom";
 import {UUID} from "@domain/utils/value-objects/UUID";
 import {Room} from "@domain/votation/entities/Room";
-import {EventTypeEnum} from "@ui/shared/enums/event-type.enum";
 import {CreateRoom} from "@domain/votation/use-cases/CreateRoom";
 import {CreateRoomImpl} from "@application/votation/use-cases/CreateRoom";
+import {ChangeRoomStatus} from "@domain/votation/use-cases/ChangeRoomStatus";
+import {ChangeRoomStatusImpl} from "@application/votation/use-cases/ChangeRoomStatus";
+import {StatusEnum} from "@domain/votation/enums/StatusEnum";
+import {Vote} from "@domain/votation/use-cases/Vote";
+import {VoteImpl} from "@application/votation/use-cases/Vote";
 
 @Injectable()
 export class VotationService {
 
-    private static joinRoomImpl: JoinRoom;
-    private static createRoomImpl: CreateRoom;
+    private joinRoomImpl: JoinRoom;
+    private createRoomImpl: CreateRoom;
+    private changeRoomStatusImpl: ChangeRoomStatus;
+    private voteImpl: Vote;
 
-    constructor(private eventBusService: EventBusService) {
-        VotationService.joinRoomImpl = new JoinRoomImpl(UserRepositoryImpl.getInstance(), RoomRepositoryImpl.getInstance());
-        VotationService.createRoomImpl = new CreateRoomImpl(RoomRepositoryImpl.getInstance());
-
-        this.eventBusService.register<object, Room>(EventTypeEnum.CREATE_ROOM, VotationService.createRoom);
-        this.eventBusService.register<{roomUUID: string, userUUID: string}, Room>(EventTypeEnum.JOIN_ROOM, VotationService.joinRoom);
+    constructor() {
+        this.joinRoomImpl = new JoinRoomImpl(UserRepositoryImpl.getInstance(), RoomRepositoryImpl.getInstance());
+        this.createRoomImpl = new CreateRoomImpl(RoomRepositoryImpl.getInstance());
+        this.changeRoomStatusImpl = new ChangeRoomStatusImpl(RoomRepositoryImpl.getInstance());
+        this.voteImpl = new VoteImpl(RoomRepositoryImpl.getInstance(), UserRepositoryImpl.getInstance());
     }
 
-    static createRoom(room): Room{
-        return VotationService.createRoomImpl.execute(new Room({...room}))
+    createRoom(room: Room): Room{
+        return this.createRoomImpl.execute(room);
     }
 
-    static joinRoom({roomUUID, userUUID}: {roomUUID: string, userUUID: string}): Room{
-        return VotationService.joinRoomImpl.execute(new UUID(roomUUID), new UUID(userUUID));
+    joinRoom({roomUUID, userUUID}: {roomUUID: UUID, userUUID: UUID}): Room{
+        return this.joinRoomImpl.execute(roomUUID, userUUID);
     }
 
+    changeRoomStatus({roomUUID, status}: {roomUUID: UUID, status: StatusEnum}): Room {
+        return this.changeRoomStatusImpl.execute(roomUUID, status);
+    }
+
+    vote({roomUUID, userUUID, value}: {roomUUID: UUID, userUUID: UUID, value: string}): Room {
+        return this.voteImpl.execute(roomUUID, userUUID, value);
+    }
 }

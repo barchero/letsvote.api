@@ -9,16 +9,14 @@ import {CreateUserImpl} from "@application/auth/use-cases/CreateUser";
 @Injectable()
 export class AuthService {
 
-    private static createUserImpl: CreateUser;
+    private createUserImpl: CreateUser;
 
-    constructor(private eventBusService: EventBusService) {
-        AuthService.createUserImpl = new CreateUserImpl(UserRepositoryImpl.getInstance());
-
-        this.eventBusService.register<object, User>(EventTypeEnum.CREATE_USER, AuthService.createUser);
+    constructor() {
+        this.createUserImpl = new CreateUserImpl(UserRepositoryImpl.getInstance());
     };
 
-    static createUser(user): User{
-        return AuthService.createUserImpl.execute(new User({...user}));
+    createUser(user): User{
+        return this.createUserImpl.execute(user);
     }
 
 }

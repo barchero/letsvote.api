@@ -1,10 +1,10 @@
 import {Module} from '@nestjs/common';
 import {EventBusService} from "@ui/shared/services/event-bus.service";
-import {EventGateway} from "@ui/shared/gateways/event.gateway";
+import {SocketGateway} from "@ui/shared/gateways/socket.gateway";
 
 @Module({
-    providers: [EventBusService, EventGateway],
-    exports: [EventBusService]
+    providers: [EventBusService, SocketGateway],
+    exports: [EventBusService, SocketGateway]
 })
 export class SharedModule {
 }
